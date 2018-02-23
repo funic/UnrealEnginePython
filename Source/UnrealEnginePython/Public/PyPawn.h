@@ -8,7 +8,7 @@
 
 
 UCLASS(BlueprintType, Blueprintable)
-class APyPawn : public APawn
+class UNREALENGINEPYTHON_API APyPawn : public APawn
 {
 	GENERATED_BODY()
 
@@ -17,20 +17,29 @@ public:
 	APyPawn();
 	~APyPawn();
 
+	// Called whenever the Actor is instantiated (before begin play)
+	virtual void PreInitializeComponents() override;
+	virtual void PostInitializeComponents() override;
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 	// Called every frame
 	virtual void Tick(float DeltaSeconds) override;
 
-	UPROPERTY(EditAnywhere, meta = (Multiline = true), Category = "Python")
-	FString PythonCode;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditAnywhere , Category = "Python")
 	FString PythonModule;
 
 	UPROPERTY(EditAnywhere, Category = "Python")
 	FString PythonClass;
+
+	UPROPERTY(EditAnywhere, Category = "Python")
+	bool PythonTickForceDisabled;
+
+	UPROPERTY(EditAnywhere, Category = "Python")
+	bool PythonDisableAutoBinding;
 
 	UFUNCTION(BlueprintCallable, Category = "Python")
 	void CallPythonPawnMethod(FString method_name);
@@ -43,11 +52,7 @@ public:
 
 private:
 	PyObject *py_pawn_instance;
-
-	UFUNCTION()
-	void PyOnActorBeginOverlap(AActor *overlapped, AActor *other);
-
-	UFUNCTION()
-	void PyOnActorClicked(AActor *touched_actor, FKey button_pressed);
+	// mapped uobject, required for debug and advanced reflection
+	ue_PyUObject *py_uobject;
 };
 

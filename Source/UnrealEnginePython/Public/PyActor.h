@@ -8,7 +8,7 @@
 
 
 UCLASS(BlueprintType, Blueprintable)
-class APyActor : public AActor
+class UNREALENGINEPYTHON_API APyActor : public AActor
 {
 	GENERATED_BODY()
 
@@ -17,20 +17,29 @@ public:
 	APyActor();
 	~APyActor();
 
+	// Called whenever the Actor is instantiated (before begin play)
+	virtual void PreInitializeComponents() override;
+	virtual void PostInitializeComponents() override;
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 	// Called every frame
 	virtual void Tick(float DeltaSeconds) override;
 
-	UPROPERTY(EditAnywhere, meta = (Multiline = true), Category = "Python")
-	FString PythonCode;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	UPROPERTY(EditAnywhere , Category = "Python")
+	UPROPERTY(EditAnywhere, Category = "Python", BlueprintReadWrite, meta = (ExposeOnSpawn = true))
 	FString PythonModule;
 
-	UPROPERTY(EditAnywhere, Category = "Python")
+	UPROPERTY(EditAnywhere, Category = "Python", BlueprintReadWrite, meta = (ExposeOnSpawn = true))
 	FString PythonClass;
+
+	UPROPERTY(EditAnywhere, Category = "Python", BlueprintReadWrite, meta = (ExposeOnSpawn = true))
+	bool PythonTickForceDisabled;
+
+	UPROPERTY(EditAnywhere, Category = "Python", BlueprintReadWrite, meta = (ExposeOnSpawn = true))
+	bool PythonDisableAutoBinding;
 
 	UFUNCTION(BlueprintCallable, Category = "Python")
 	void CallPythonActorMethod(FString method_name, FString args);
@@ -43,17 +52,7 @@ public:
 
 private:
 	PyObject *py_actor_instance;
-
-	UFUNCTION()
-	void PyOnActorBeginOverlap(AActor *overlapped, AActor *other);
-
-	UFUNCTION()
-	void PyOnActorEndOverlap(AActor *overlapped, AActor *other);
-
-	UFUNCTION()
-	void PyOnActorHit(AActor *self_actor, AActor *other, FVector normal_impulse, const FHitResult &hit);
-
-	UFUNCTION()
-	void PyOnActorClicked(AActor *touched_actor, FKey button_pressed);
+	// mapped uobject, required for debug and advanced reflection
+	ue_PyUObject *py_uobject;
 };
 
